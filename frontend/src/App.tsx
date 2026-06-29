@@ -5,6 +5,10 @@ import { socket } from "./socket";
 function App() {
   useEffect(() => {
     socket.connect();
+    socket.emit("testEvent", "test");
+
+    const onReply = (data: string) => console.log(data);
+    socket.on("testReply", onReply);
 
     return () => {
       socket.disconnect();

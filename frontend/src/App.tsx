@@ -1,35 +1,45 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { socket } from "./socket";
+import { GameBoard } from "./components/GameBoard";
 
 function App() {
+  const [connected, setConnected] = useState(socket.connected);
+  const [playerId, setPlayerId] = useState<string>('Waiting...');
+  const [roomId, setRoomId] = useState<string>('Waiting...');
+  const [role, setRole] = useState<string>('Waiting...');
   useEffect(() => {
-    socket.connect();
+    if (!connected) {
+      socket.connect();
+    }
 
-    socket.on('connect', () => {
-      console.log('Connected! Socket ID:', socket.id);
+    const onConnect = () => {
+      setConnected(true);
+      setPlayerId(socket.id!);
       socket.emit('testEvent', 'test');
-    });
+      socket.emit('joinGame');
+    };
+    const onTestReply = (data: string) => console.log(data);
+    const onJoinRoom = (roomId: string) => setRoomId(roomId);
+    const onRoleAssignment = (role: string) => setRole(role);
 
-    const onReply = (data: string) => console.log(data);
-    socket.on("testReply", onReply);
-
-    const onJoinRoom = (data: string) => console.log(data);
-    socket.on("joined", onJoinRoom);
-
-    const onRoleAssignment = (role: string) => console.log('You are the ' + role);
-    socket.on("role", onRoleAssignment);
-
-    socket.emit("joinGame");
+    socket.on('connect', onConnect)
+    socket.on('testReply', onTestReply);
+    socket.on('joined', onJoinRoom);
+    socket.on('role', onRoleAssignment);
 
     return () => {
-      socket.disconnect();
+      socket.off('connect', onConnect);
+      socket.off('joined', onJoinRoom);
+      socket.off('role', onRoleAssignment);
+      setConnected(false);
     };
-  }, []);
+  }, [connected]);
 
   return (
     <div>
       <h1>Hide and Seek</h1>
+      <GameBoard playerId={playerId} roomId={roomId} role={role} />
     </div>
   );
 }

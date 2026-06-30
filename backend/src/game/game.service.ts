@@ -12,9 +12,9 @@ export class GameService {
       roomId,
       players: new Map(),
       status: 'waiting',
-      winnerId: null,
-      winReason: null,
-      timeRemaining: 300,
+      winnerId: undefined,
+      winReason: undefined,
+      timeRemaining: 60,
     };
     this.matches.set(roomId, newMatch);
     return newMatch;
@@ -208,5 +208,24 @@ export class GameService {
     this.matches.set(targetRoomId, updatedMatch);
 
     return updatedMatch;
+  }
+
+  countDownTimer(roomId: string): MatchState | null {
+    const match = this.matches.get(roomId);
+    if (!match || match.status !== 'running') return null;
+
+    match.timeRemaining -= 1;
+
+    if (match.timeRemaining <= 0) {
+      match.status = 'finished';
+      match.winReason = 'time_expired';
+
+      const hider = Array.from(match.players.values()).find(
+        (player) => player.role === 'hider',
+      );
+      match.winnerId = hider?.socketId;
+    }
+
+    return match;
   }
 }

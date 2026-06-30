@@ -12,6 +12,7 @@ function App() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState<string>('');
   const [winReason, setWinReason] = useState<string>('');
+  const [time, setTime] = useState<number>(60);
 
   useEffect(() => {
     if (!connected) {
@@ -28,6 +29,7 @@ function App() {
     const onJoinRoom = (roomId: string) => setRoomId(roomId);
     const onRoleAssignment = (role: string) => setRole(role);
     const onMove = (position: {x: number, y: number}) => setPlayerPosition(position);
+    const onTime = (time: number) => setTime(time);
 
     socket.on('connect', onConnect)
     socket.on('testReply', onTestReply);
@@ -42,6 +44,7 @@ function App() {
       console.log(winReason);
       setWinReason(winReason);
     });
+    socket.on('time', onTime);
 
     return () => {
       socket.off('connect', onConnect);
@@ -57,7 +60,7 @@ function App() {
   return (
     <div>
       <h1>Hide and Seek</h1>
-      <GameBoard playerId={playerId} playerPosition = {playerPosition} roomId={roomId} role={role} isGameOver={isGameOver} winner={winner} winReason={winReason} />
+      <GameBoard playerId={playerId} playerPosition = {playerPosition} roomId={roomId} role={role} isGameOver={isGameOver} winner={winner} winReason={winReason} time={time} />
     </div>
   );
 }

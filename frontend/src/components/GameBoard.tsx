@@ -10,6 +10,7 @@ export const GameBoard = ({
   isGameOver,
   winner,
   winReason,
+  time,
 }: {
   playerId: string;
   playerPosition: {x: number, y:number};
@@ -18,6 +19,7 @@ export const GameBoard = ({
   isGameOver: boolean;
   winner: string;
   winReason: string;
+  time: number;
 }) => {
   const cells = Array.from({ length: 100 });
 
@@ -65,6 +67,9 @@ export const GameBoard = ({
         </p>
         <p>
           <strong>Your Role:</strong> {role}
+        </p>
+        <p>
+          <strong>Remaining time:</strong> {time} seconds
         </p>
       </div>
       <div className="grid">

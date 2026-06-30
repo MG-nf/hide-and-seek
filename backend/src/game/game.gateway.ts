@@ -42,6 +42,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(player.socketId).emit('role', player.role);
         this.server.to(player.socketId).emit('move', player.position);
       }
+
+      const timer = setInterval(() => {
+        const updatedMatch = this.gameService.countDownTimer(match.roomId);
+
+        if (!updatedMatch) {
+          clearInterval(timer);
+          return;
+        }
+
+        this.server
+          .to(updatedMatch.roomId)
+          .emit('time', updatedMatch.timeRemaining);
+
+        if (updatedMatch.status === 'finished') {
+          clearInterval(timer);
+          this.server.to(updatedMatch.roomId).emit('gameOver', {
+            winnerId: updatedMatch.winnerId,
+            reason: updatedMatch.winReason,
+          });
+        }
+      }, 1000);
     }
   }
 

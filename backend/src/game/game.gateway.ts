@@ -51,14 +51,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (match) {
       this.server.to(client.id).emit('move', position);
-      if (match.status === 'finished') {
-        const winner = Array.from(match.players.values()).find(
-          (p) => p.role === 'seeker',
-        );
 
+      if (match.status === 'finished') {
         this.server.to(match.roomId).emit('gameOver', {
-          winnerId: winner?.socketId,
-          message: 'Caught!',
+          winnerId: match.winnerId,
+          message: match.winReason,
         });
       }
     } else {

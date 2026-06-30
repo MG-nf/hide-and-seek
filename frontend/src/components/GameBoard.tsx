@@ -8,12 +8,16 @@ export const GameBoard = ({
   roomId,
   role,
   isGameOver,
+  winner,
+  winReason,
 }: {
   playerId: string;
   playerPosition: {x: number, y:number};
   roomId: string;
   role: string;
   isGameOver: boolean;
+  winner: string;
+  winReason: string;
 }) => {
   const cells = Array.from({ length: 100 });
 
@@ -46,9 +50,9 @@ export const GameBoard = ({
 
   useEffect(() => {
     if (isGameOver) {
-      alert("Game Over! The seeker won!");
+      alert("Game Over! " + winner + " won (" + winReason + ")!");
     }
-  }, [isGameOver]);
+  }, [isGameOver, winReason, winner]);
 
   return (
     <div className="game-container">

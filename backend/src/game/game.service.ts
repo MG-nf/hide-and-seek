@@ -12,6 +12,8 @@ export class GameService {
       roomId,
       players: new Map(),
       status: 'waiting',
+      winnerId: null,
+      winReason: null,
       timeRemaining: 300,
     };
     this.matches.set(roomId, newMatch);
@@ -199,6 +201,8 @@ export class GameService {
 
     if (collision) {
       updatedMatch.status = 'finished';
+      updatedMatch.winnerId = socketId;
+      updatedMatch.winReason = 'caught';
     }
 
     this.matches.set(targetRoomId, updatedMatch);

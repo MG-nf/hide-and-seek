@@ -11,6 +11,10 @@ export const GameBoard = ({
 }) => {
   const cells = Array.from({ length: 100 });
 
+  if(!role) {
+    role = "Waiting...";
+  }
+
   return (
     <div className="game-container">
       <div className="meta-info">

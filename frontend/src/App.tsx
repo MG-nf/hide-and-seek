@@ -8,6 +8,8 @@ function App() {
   const [playerId, setPlayerId] = useState<string>('Waiting...');
   const [roomId, setRoomId] = useState<string>('Waiting...');
   const [role, setRole] = useState<string>('Waiting...');
+  const [playerPosition, setPlayerPosition] = useState<{x: number, y:number}>({x:0, y:0})
+
   useEffect(() => {
     if (!connected) {
       socket.connect();
@@ -22,16 +24,19 @@ function App() {
     const onTestReply = (data: string) => console.log(data);
     const onJoinRoom = (roomId: string) => setRoomId(roomId);
     const onRoleAssignment = (role: string) => setRole(role);
+    const onMove = (position: {x: number, y: number}) => setPlayerPosition(position);
 
     socket.on('connect', onConnect)
     socket.on('testReply', onTestReply);
     socket.on('joined', onJoinRoom);
     socket.on('role', onRoleAssignment);
+    socket.on('move', onMove)
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('joined', onJoinRoom);
       socket.off('role', onRoleAssignment);
+      socket.off('move', onMove);
       setConnected(false);
     };
   }, [connected]);
@@ -39,7 +44,7 @@ function App() {
   return (
     <div>
       <h1>Hide and Seek</h1>
-      <GameBoard playerId={playerId} roomId={roomId} role={role} />
+      <GameBoard playerId={playerId} playerPosition = {playerPosition} roomId={roomId} role={role} />
     </div>
   );
 }

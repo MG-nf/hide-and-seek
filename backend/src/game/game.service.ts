@@ -31,7 +31,7 @@ export class GameService {
     return this.matches.get(roomId);
   }
 
-  async addPlayerToMatch(client: Socket) {
+  async addPlayerToMatch(client: Socket): Promise<MatchState> {
     let match = this.findMatch();
     if (!match) {
       const newRoomId = `room_${Date.now()}`;
@@ -43,7 +43,7 @@ export class GameService {
     const updatedPlayers = new Map(match.players);
     updatedPlayers.set(newPlayer.socketId, newPlayer);
 
-    const updatedMatch = {
+    const updatedMatch: MatchState = {
       ...match,
       players: updatedPlayers,
     };
@@ -55,7 +55,8 @@ export class GameService {
     if (updatedMatch.players.size === 2) {
       return this.startMatch(updatedMatch);
     }
-    return match;
+
+    return updatedMatch;
   }
 
   removePlayerFromMatch(client: Socket) {
@@ -111,15 +112,70 @@ export class GameService {
   }
 
   startMatch(match: MatchState) {
-    const players = Array.from(match.players.values());
+    const newPlayers = new Map(match.players);
+    const players = Array.from(newPlayers.values());
+
     const isSeeker = Math.random() < 0.5;
 
-    players[0].role = isSeeker ? 'seeker' : 'hider';
-    players[1].role = isSeeker ? 'hider' : 'seeker';
+    newPlayers.set(players[0].socketId, {
+      ...players[0],
+      role: isSeeker ? 'seeker' : 'hider',
+    });
 
-    match.status = 'running';
+    newPlayers.set(players[1].socketId, {
+      ...players[1],
+      role: isSeeker ? 'hider' : 'seeker',
+    });
+
+    const randomPlayer = Math.random() < 0.5 ? players[0] : players[1];
+
+    newPlayers.set(randomPlayer.socketId, {
+      ...newPlayers.get(randomPlayer.socketId)!,
+      position: { x: 9, y: 9 },
+    });
+
+    const updatedMatch: MatchState = {
+      ...match,
+      players: newPlayers,
+      status: 'running',
+    };
+
+    this.matches.set(match.roomId, updatedMatch);
     console.log('The game has started');
 
-    return match;
+    return updatedMatch;
+  }
+
+  updatePlayerPosition(
+    socketId: string,
+    newPosition: { x: number; y: number },
+  ): MatchState | null {
+    let targetRoomId: string | null = null;
+    for (const [roomId, match] of this.matches.entries()) {
+      if (match.players.has(socketId)) {
+        targetRoomId = roomId;
+        break;
+      }
+    }
+
+    if (!targetRoomId) return null;
+
+    const match = this.matches.get(targetRoomId)!;
+    const player = match.players.get(socketId)!;
+
+    const newPlayers = new Map(match.players);
+    newPlayers.set(socketId, {
+      ...player,
+      position: newPosition,
+    });
+
+    const updatedMatch: MatchState = {
+      ...match,
+      players: newPlayers,
+    };
+
+    this.matches.set(targetRoomId, updatedMatch);
+
+    return updatedMatch;
   }
 }

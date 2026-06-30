@@ -42,7 +42,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (match.players.size === 2) {
       for (const player of match.players.values()) {
         this.server.to(player.socketId).emit('role', player.role);
+        this.server.to(player.socketId).emit('move', player.position);
       }
+    }
+  }
+
+  @SubscribeMessage('movePlayer')
+  handleMove(client: Socket, position: { x: number; y: number }) {
+    const match = this.gameService.updatePlayerPosition(client.id, position);
+
+    if (match) {
+      this.server.to(client.id).emit('move', position);
     }
   }
 

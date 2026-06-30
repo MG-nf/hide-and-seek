@@ -163,6 +163,22 @@ export class GameService {
     const match = this.matches.get(targetRoomId)!;
     const player = match.players.get(socketId)!;
 
+    if (match.status !== 'running') {
+      console.log('Move intent rejected: Game is not running.');
+      return null;
+    }
+
+    const isWithinBounds =
+      newPosition.x >= 0 &&
+      newPosition.x < 10 &&
+      newPosition.y >= 0 &&
+      newPosition.y < 10;
+
+    if (!isWithinBounds) {
+      console.log('Move intent rejected: Out of bounds.');
+      return null;
+    }
+
     const newPlayers = new Map(match.players);
     newPlayers.set(socketId, {
       ...player,
@@ -173,6 +189,17 @@ export class GameService {
       ...match,
       players: newPlayers,
     };
+
+    const collision = Array.from(match.players.values()).find(
+      (p) =>
+        p.socketId !== socketId &&
+        p.position.x === newPosition.x &&
+        p.position.y === newPosition.y,
+    );
+
+    if (collision) {
+      updatedMatch.status = 'finished';
+    }
 
     this.matches.set(targetRoomId, updatedMatch);
 

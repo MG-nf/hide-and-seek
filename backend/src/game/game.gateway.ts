@@ -37,8 +37,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const match = await this.gameService.addPlayerToMatch(client);
     this.server.to(client.id).emit('joined', match.roomId);
 
-    console.log(match.players.size);
-
     if (match.players.size === 2) {
       for (const player of match.players.values()) {
         this.server.to(player.socketId).emit('role', player.role);
@@ -53,6 +51,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (match) {
       this.server.to(client.id).emit('move', position);
+      if (match.status === 'finished') {
+        const winner = Array.from(match.players.values()).find(
+          (p) => p.role === 'seeker',
+        );
+
+        this.server.to(match.roomId).emit('gameOver', {
+          winnerId: winner?.socketId,
+          message: 'Caught!',
+        });
+      }
+    } else {
+      client.emit('moveRejected', 'Invalid move!');
     }
   }
 

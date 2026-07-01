@@ -39,8 +39,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (match.players.size === 2) {
       for (const player of match.players.values()) {
+        const visibleData = this.gameService.getVisibleStateForPlayer(
+          match,
+          player.socketId,
+        );
+        this.server
+          .to(player.socketId)
+          .emit('updateVisiblePlayers', visibleData);
         this.server.to(player.socketId).emit('role', player.role);
         this.server.to(player.socketId).emit('move', player.position);
+        this.server
+          .to(player.socketId)
+          .emit('updateVisiblePlayers', visibleData);
       }
 
       const timer = setInterval(() => {

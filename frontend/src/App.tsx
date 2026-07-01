@@ -30,6 +30,7 @@ function App() {
     const onRoleAssignment = (role: string) => setRole(role);
     const onMove = (position: {x: number, y: number}) => setPlayerPosition(position);
     const onTime = (time: number) => setTime(time);
+    const onOpponentLeft = (data: { message: string }) => alert(data.message);
 
     socket.on('connect', onConnect)
     socket.on('testReply', onTestReply);
@@ -39,12 +40,12 @@ function App() {
     socket.on('gameOver', (data: { winnerId: string, message: string }) => {
       setIsGameOver(true);
       setWinner(data.winnerId);
-      console.log(data.message);
       const winReason = data.message === 'caught' ? 'The hider has been caught' : 'The time is up';
       console.log(winReason);
       setWinReason(winReason);
     });
     socket.on('time', onTime);
+    socket.on('opponentLeft', onOpponentLeft);
 
     return () => {
       socket.off('connect', onConnect);
@@ -53,6 +54,8 @@ function App() {
       socket.off('role', onRoleAssignment);
       socket.off('move', onMove);
       socket.off('gameOver');
+      socket.off('time', onTime);
+      socket.off('opponentLeft', onOpponentLeft);
       setConnected(false);
     };
   }, [connected]);

@@ -92,6 +92,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server
         .to(remainingPlayer.socketId)
         .emit('role', remainingPlayer.role);
+      this.server
+        .to(remainingPlayer.socketId)
+        .emit('opponentLeft', { message: 'Your opponent has left the match' });
     }
   }
 }

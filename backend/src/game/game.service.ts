@@ -200,8 +200,12 @@ export class GameService {
     );
 
     if (collision) {
+      const seeker = Array.from(match.players.values()).find(
+        (player) => player.role === 'seeker',
+      );
+
       updatedMatch.status = 'finished';
-      updatedMatch.winnerId = socketId;
+      updatedMatch.winnerId = seeker?.socketId;
       updatedMatch.winReason = 'caught';
     }
 

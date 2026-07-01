@@ -22,9 +22,15 @@ export const GameBoard = ({
   winReason: string;
   time: number;
 }) => {
-  const cells = Array.from({ length: 100 });
+  const cells = Array.from({ length: 100 }).map((_, index) => ({
+    id: index,
+    x: index % 10,
+    y: Math.floor(index / 10),
+  }));
 
   const displayRole: PlayerRole = (role as PlayerRole) || "waiting";
+
+  const isSeeker = role === 'seeker' ? true : false;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -71,20 +77,27 @@ export const GameBoard = ({
           <strong>Remaining time:</strong> {time} seconds
         </p>
       </div>
-      <div className="grid">
-        {cells.map((_, index) => {
-          const x = index % 10;
-          const y = Math.floor(index / 10);
-
-          const isPlayerHere = playerPosition.x === x && playerPosition.y === y;
-
-          return (
-            <div key={index} className="grid-cell">
-              {isPlayerHere ? 'X' : ''}
-            </div>
-          );
-        })}
-      </div>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(10, 1fr)' }}>
+      {cells.map((cell) => {
+        const isPlayer = cell.x === playerPosition.x && cell.y === playerPosition.y;
+        
+        return (
+          <div key={cell.id} className="grid-cell">
+            {isPlayer && (
+              <div 
+                className="game-token" 
+                style={{ 
+                  '--color-token': isSeeker ? '#4b7bec' : '#8854d0' 
+                } as React.CSSProperties}
+              >
+                {isSeeker && <div className="search-aura" />}
+                <span className="token-emoji">{isSeeker ? '👮' : '🥷'}</span>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
     </div>
   );
 };

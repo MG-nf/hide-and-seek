@@ -91,6 +91,7 @@ export class GameService {
       newPlayers.set(remainingSocketId, {
         ...remainingPlayer,
         role: null,
+        position: { x: 0, y: 0 },
       });
     }
 
@@ -98,6 +99,7 @@ export class GameService {
       ...match,
       players: newPlayers,
       status: 'waiting',
+      timeRemaining: 60,
     };
 
     this.matches.set(targetRoomId, updatedMatch);

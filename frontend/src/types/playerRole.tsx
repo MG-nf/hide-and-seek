@@ -1,0 +1,1 @@
+export type PlayerRole = "seeker" | "hider" | "waiting";

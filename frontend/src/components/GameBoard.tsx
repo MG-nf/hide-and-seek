@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { socket } from '../socket';
 import './GameBoard.css';
+import type { PlayerRole } from '../types/playerRole';
 
 export const GameBoard = ({
   playerId,
@@ -23,10 +24,8 @@ export const GameBoard = ({
 }) => {
   const cells = Array.from({ length: 100 });
 
-  if(!role) {
-    role = "Waiting...";
-  }
- 
+  const displayRole: PlayerRole = (role as PlayerRole) || "waiting";
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       let { x, y } = playerPosition;
@@ -66,7 +65,7 @@ export const GameBoard = ({
           <strong>Room ID:</strong> {roomId}
         </p>
         <p>
-          <strong>Your Role:</strong> {role}
+          <strong>Your Role:</strong> {displayRole}
         </p>
         <p>
           <strong>Remaining time:</strong> {time} seconds
@@ -80,7 +79,7 @@ export const GameBoard = ({
           const isPlayerHere = playerPosition.x === x && playerPosition.y === y;
 
           return (
-            <div key={index} className="cell">
+            <div key={index} className="grid-cell">
               {isPlayerHere ? 'X' : ''}
             </div>
           );

@@ -234,4 +234,35 @@ export class GameService {
 
     return match;
   }
+
+  getVisibleStateForPlayer(match: MatchState, viewerSocketId: string) {
+    const players = Array.from(match.players.values());
+    const seeker = players.find((p) => p.role === 'seeker');
+    const hider = players.find((p) => p.role === 'hider');
+    const viewer = match.players.get(viewerSocketId);
+
+    if (!seeker || !hider || !viewer) return [];
+
+    const visiblePlayers: {
+      role: string;
+      position: { x: number; y: number };
+    }[] = [];
+
+    visiblePlayers.push({ role: 'seeker', position: seeker.position });
+
+    const distance = Math.max(
+      Math.abs(seeker.position.x - hider.position.x),
+      Math.abs(seeker.position.y - hider.position.y),
+    );
+
+    if (viewer.role === 'seeker') {
+      if (distance <= 2) {
+        visiblePlayers.push({ role: 'hider', position: hider.position });
+      }
+    } else {
+      visiblePlayers.push({ role: 'hider', position: hider.position });
+    }
+
+    return visiblePlayers;
+  }
 }

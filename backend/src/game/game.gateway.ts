@@ -71,7 +71,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const match = this.gameService.updatePlayerPosition(client.id, position);
 
     if (match) {
-      this.server.to(client.id).emit('move', position);
+      this.server.to(client.id).emit('move', position); // todo: remove when the new version is tested
+
+      for (const player of match.players.values()) {
+        const visibleData = this.gameService.getVisibleStateForPlayer(
+          match,
+          player.socketId,
+        );
+        this.server
+          .to(player.socketId)
+          .emit('updateVisiblePlayers', visibleData);
+      }
 
       if (match.status === 'finished') {
         this.server.to(match.roomId).emit('gameOver', {

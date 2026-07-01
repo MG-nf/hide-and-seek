@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { socket } from "./socket";
 import { GameBoard } from "./components/GameBoard";
+import type { VisiblePlayer } from "./types/visiblePlayer";
 
 function App() {
   const [connected, setConnected] = useState(socket.connected);
@@ -13,6 +14,7 @@ function App() {
   const [winner, setWinner] = useState<string>('');
   const [winReason, setWinReason] = useState<string>('');
   const [time, setTime] = useState<number>(60);
+  const [visiblePlayers, setVisiblePlayers] = useState<VisiblePlayer[]>([]);
 
   useEffect(() => {
     if (!connected) {
@@ -31,21 +33,22 @@ function App() {
     const onMove = (position: {x: number, y: number}) => setPlayerPosition(position);
     const onTime = (time: number) => setTime(time);
     const onOpponentLeft = (data: { message: string }) => alert(data.message);
+    const onVisiblePlayers = (data: VisiblePlayer[]) => setVisiblePlayers(data);
 
-    socket.on('connect', onConnect)
+    socket.on('connect', onConnect);
     socket.on('testReply', onTestReply);
     socket.on('joined', onJoinRoom);
     socket.on('role', onRoleAssignment);
     socket.on('move', onMove);
+    socket.on('time', onTime);
+    socket.on('opponentLeft', onOpponentLeft);
+    socket.on('updateVisiblePlayers', onVisiblePlayers);
     socket.on('gameOver', (data: { winnerId: string, message: string }) => {
       setIsGameOver(true);
       setWinner(data.winnerId);
       const winReason = data.message === 'caught' ? 'The hider has been caught' : 'The time is up';
-      console.log(winReason);
       setWinReason(winReason);
     });
-    socket.on('time', onTime);
-    socket.on('opponentLeft', onOpponentLeft);
 
     return () => {
       socket.off('connect', onConnect);
@@ -53,9 +56,10 @@ function App() {
       socket.off('joined', onJoinRoom);
       socket.off('role', onRoleAssignment);
       socket.off('move', onMove);
-      socket.off('gameOver');
       socket.off('time', onTime);
       socket.off('opponentLeft', onOpponentLeft);
+      socket.off('updateVisiblePlayers', onVisiblePlayers);
+      socket.off('gameOver');
       setConnected(false);
     };
   }, [connected]);
@@ -63,7 +67,17 @@ function App() {
   return (
     <div>
       <h1>Hide and Seek</h1>
-      <GameBoard playerId={playerId} playerPosition = {playerPosition} roomId={roomId} role={role} isGameOver={isGameOver} winner={winner} winReason={winReason} time={time} />
+      <GameBoard 
+        playerId={playerId} 
+        playerPosition={playerPosition} 
+        visiblePlayers={visiblePlayers}
+        roomId={roomId} 
+        role={role} 
+        isGameOver={isGameOver} 
+        winner={winner} 
+        winReason={winReason} 
+        time={time} 
+      />
     </div>
   );
 }

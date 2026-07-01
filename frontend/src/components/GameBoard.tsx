@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { socket } from '../socket';
 import './GameBoard.css';
 import type { PlayerRole } from '../types/playerRole';
+import type { VisiblePlayer } from '../types/visiblePlayer';
 
 export const GameBoard = ({
   playerId,
   playerPosition,
+  visiblePlayers,
   roomId,
   role,
   isGameOver,
@@ -15,6 +17,7 @@ export const GameBoard = ({
 }: {
   playerId: string;
   playerPosition: {x: number, y:number};
+  visiblePlayers: VisiblePlayer[];
   roomId: string;
   role: string;
   isGameOver: boolean;
@@ -29,13 +32,11 @@ export const GameBoard = ({
   }));
 
   const displayRole: PlayerRole = (role as PlayerRole) || "waiting";
-
-  const isSeeker = role === 'seeker' ? true : false;
+  // const isSeekerRole = role === 'seeker';
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       let { x, y } = playerPosition;
-
       switch (event.key) {
         case 'ArrowUp':    y = Math.max(0, y - 1); break;
         case 'ArrowDown':  y = Math.min(9, y + 1); break;
@@ -43,16 +44,10 @@ export const GameBoard = ({
         case 'ArrowRight': x = Math.min(9, x + 1); break;
         default: return;
       }
-
       socket.emit('movePlayer', { x, y });
     };
-    
     window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [playerPosition]);
 
   useEffect(() => {
@@ -64,40 +59,30 @@ export const GameBoard = ({
   return (
     <div className="game-container">
       <div className="meta-info">
-        <p>
-          <strong>Player ID:</strong> {playerId}
-        </p>
-        <p>
-          <strong>Room ID:</strong> {roomId}
-        </p>
-        <p>
-          <strong>Your Role:</strong> {displayRole}
-        </p>
-        <p>
-          <strong>Remaining time:</strong> {time} seconds
-        </p>
+        <p><strong>Player ID:</strong> {playerId}</p>
+        <p><strong>Room ID:</strong> {roomId}</p>
+        <p><strong>Your Role:</strong> {displayRole}</p>
+        <p><strong>Remaining time:</strong> {time} seconds</p>
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(10, 1fr)' }}>
-      {cells.map((cell) => {
-        const isPlayer = cell.x === playerPosition.x && cell.y === playerPosition.y;
-        
-        return (
-          <div key={cell.id} className="grid-cell">
-            {isPlayer && (
-              <div 
-                className="game-token" 
-                style={{ 
-                  '--color-token': isSeeker ? '#4b7bec' : '#8854d0' 
-                } as React.CSSProperties}
-              >
-                {isSeeker && <div className="search-aura" />}
-                <span className="token-emoji">{isSeeker ? '👮' : '🥷'}</span>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+        {cells.map((cell) => {
+          const foundPlayer = visiblePlayers.find(p => p.position.x === cell.x && p.position.y === cell.y);
+          
+          return (
+            <div key={cell.id} className="grid-cell">
+              {foundPlayer && (
+                <div 
+                  className="game-token" 
+                  style={{ '--color-token': foundPlayer.role === 'seeker' ? '#4b7bec' : '#8854d0' } as React.CSSProperties}
+                >
+                  {foundPlayer.role === 'seeker' && <div className="search-aura" />}
+                  <span className="token-emoji">{foundPlayer.role === 'seeker' ? '👮' : '🥷'}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
